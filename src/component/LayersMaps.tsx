@@ -1,87 +1,148 @@
-import { Radio, RadioGroup, FormControlLabel, Box, Typography, IconButton, Divider } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import {
+    Radio,
+    RadioGroup,
+    FormControlLabel,
+    Box,
+    Typography,
+    IconButton,
+    Divider,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface LayersProps {
-    selectedMap: string
-    onChange: (vlaue: string) => void
-    setOpenMap: React.Dispatch<React.SetStateAction<boolean>>
-    openMap: boolean
+    selectedMap: string;
+    onChange: (value: string) => void;
+    setOpenMap: React.Dispatch<React.SetStateAction<boolean>>;
+    openMap: boolean;
 }
 
-export const BaseMapSelector = ({ selectedMap, onChange, setOpenMap, openMap }: LayersProps) => {
+export const BaseMapSelector = ({
+    selectedMap,
+    onChange,
+    setOpenMap,
+    openMap,
+}: LayersProps) => {
     return (
         <RadioGroup
             value={selectedMap}
             onChange={(e) => {
-                onChange(e.target.value)
-                setOpenMap(false)
+                onChange(e.target.value);
+                setOpenMap(false);
             }}
             sx={{
-                color: 'white',
-                zIndex: 1200,
-                position: 'absolute',
-                width: '200px',
-                top: 50,
-                transition: 'right .3s ease',
-                right: `${openMap ? 0 : '-20%'}`,
-                backgroundColor: 'var(--color-primary)',
-                opacity: 0.9,
+                position: "absolute",
+                top: 70,
+                right: openMap ? 20 : "-260px",
+                width: 230,
+                zIndex: 1300,
+                transition: "right .3s ease",
+
+                backgroundColor: "#f4f6f8",
+                color: "#333",
+
+                borderRadius: 3,
+                boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+                padding: 2,
             }}
         >
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <IconButton onClick={() => setOpenMap(false)} sx={{ color: 'white' }}>
-                    <CloseIcon />
-                </IconButton>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '16px' }}>
-                    Mapas Bases
+            {/* Header */}
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
+            >
+                <Typography
+                    variant="subtitle1"
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Mapas Base
                 </Typography>
-            </Box>
-            <Divider sx={{ my: 1, borderColor: 'white' }} />
-            <FormControlLabel
-                sx={{
-                    m: 0,
-                    '&:hover': {
-                        backgroundColor: 'var(--color-primary)',
-                    }
-                }}
-                value="baseMap"
-                control={<Radio sx={{
-                    color: 'white',
-                    '&.Mui-checked': {
-                        color: 'white'
-                    }
-                }} />}
-                label="Base Map"
 
-            />
-            <FormControlLabel
+                <IconButton
+                    size="small"
+                    onClick={() => setOpenMap(false)}
+                    sx={{ color: "var(--color-primary)" }}
+                >
+                    <CloseIcon fontSize="small" />
+                </IconButton>
+            </Box>
+
+            <Divider
                 sx={{
-                    m: 0,
-                    '&:hover': {
-                        backgroundColor: 'var(--color-primary)',
-                    }
+                    my: 1,
+                    borderColor: "var(--color-primary)",
+                    borderBottomWidth: 1
                 }}
+            />
+
+            {/* Opciones */}
+            <FormControlLabel
+                value="baseMap"
+                control={
+                    <Radio
+                        sx={{
+                            color: "#666",
+                            "&.Mui-checked": {
+                                color: "var(--color-primary)",
+                            },
+                        }}
+                    />
+                }
+                label="Base Map"
+                sx={{ marginLeft: 0 }}
+            />
+
+            <FormControlLabel
                 value="sateliteMap"
-                control={<Radio sx={{
-                    color: 'white',
-                    '&.Mui-checked': { color: 'white' }
-                }} />}
+                control={
+                    <Radio
+                        sx={{
+                            color: "#666",
+                            "&.Mui-checked": {
+                                color: "var(--color-primary)",
+                            },
+                        }}
+                    />
+                }
                 label="Satellite Map"
+                sx={{ marginLeft: 0 }}
             />
+
             <FormControlLabel
-                sx={{
-                    m: 0,
-                    '&:hover': {
-                        backgroundColor: '#074dafff',
-                    }
-                }}
                 value="topoMap"
-                control={<Radio sx={{
-                    color: 'white',
-                    '&.Mui-checked': { color: 'white' }
-                }} />}
+                control={
+                    <Radio
+                        sx={{
+                            color: "#666",
+                            "&.Mui-checked": {
+                                color: "var(--color-primary)",
+                            },
+                        }}
+                    />
+                }
                 label="Topo Map"
+                sx={{ marginLeft: 0 }}
             />
-        </RadioGroup >
+
+            <FormControlLabel
+                value="darkMap"
+                control={
+                    <Radio
+                        sx={{
+                            color: "#666",
+                            "&.Mui-checked": {
+                                color: "var(--color-primary)",
+                            },
+                        }}
+                    />
+                }
+                label="Dark Map"
+                sx={{ marginLeft: 0 }}
+            />
+        </RadioGroup>
     );
 };

@@ -1,20 +1,27 @@
-import type { Feature, Geometry } from 'geojson';
-import type { GeojsonProps } from '../interface/geojson.interface';
+import type { Feature, Geometry, FeatureCollection, Point } from "geojson";
 
-export function findFeaturesAtSameLocation(geojson: GeojsonProps["geojson"]): Record<string, Feature[]> {
-    const featuresByLocation: Record<string, Feature[]> = {};
-    
-    geojson.features.forEach(feature => {
-        if (feature.geometry && 'coordinates' in feature.geometry) {
-            const coords = feature.geometry.coordinates;
-            const key = `${coords[0]},${coords[1]}`;
-            
-            if (!featuresByLocation[key]) {
-                featuresByLocation[key] = [];
-            }
-            featuresByLocation[key].push(feature);
-        }
-    });
-    
-    return featuresByLocation;
+export function findFeaturesAtSameLocation(
+  geojson: FeatureCollection<Geometry>
+): Record<string, Feature<Geometry>[]> {
+
+  const featuresByLocation: Record<string, Feature<Geometry>[]> = {};
+
+  geojson.features.forEach((feature) => {
+
+    if (feature.geometry?.type === "Point") {
+
+      const coords = (feature.geometry as Point).coordinates;
+      const key = `${coords[0]},${coords[1]}`;
+
+      if (!featuresByLocation[key]) {
+        featuresByLocation[key] = [];
+      }
+
+      featuresByLocation[key].push(feature);
+
+    }
+
+  });
+
+  return featuresByLocation;
 }

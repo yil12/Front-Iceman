@@ -1,202 +1,174 @@
 import type { GeojsonProps, ListGeojsonProps } from "../interface/geojson.interface"
+import { DATASETS } from "../data/dataset"
 import ItemGeo from "./ItemGeo"
-import { getDepth } from "../request/get-depth";
-import CircularIndeterminate from "./modals/CircularProgress";
-import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { Tabs, Tab, Box, IconButton, Collapse } from "@mui/material";
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
-import { getMeteo } from "../request/get-meteo";
+import { getYears } from "../request/get-years"
+import CircularIndeterminate from "./modals/CircularProgress"
+import { useQuery } from "@tanstack/react-query"
+import { useState, useEffect } from "react"
+import { Tabs, Tab, Box, IconButton, Collapse } from "@mui/material"
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp"
+
+import { useMap } from '../store/MapContext'
 
 const empresasImg = [
-    // Puedes reemplazar estas rutas con las imágenes reales de las empresas
     { src: "/img/empresa1.png", alt: "Empresa 1" },
     { src: "/img/empresa2.png", alt: "Empresa 2" },
     { src: "/img/empresa3.png", alt: "Empresa 3" },
-];
+]
 
-const ListDataGeo = ({ isWavesActive, isWindsActive, map }: ListGeojsonProps) => {
-    const [tabIndex, setTabIndex] = useState(0);
-    const [open, setOpen] = useState(false);
-    const [windsData, setWindsData] = useState<GeojsonProps[] | null>(null);
-    const [wavesData, setWavessData] = useState<GeojsonProps[] | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+const ListDataGeo = ({ dataset }: ListGeojsonProps) => {
 
-    const { data: waves, isLoading: loadingWaves } = useQuery<GeojsonProps[] | null>({
-        queryKey: ['wavesData', isWavesActive],
-        queryFn: getMeteo,
-        enabled: isWavesActive,
-    });
+    const [tabIndex, setTabIndex] = useState(0)
+    const [open, setOpen] = useState(false)
 
-    const { data, isLoading: queryLoading } = useQuery<GeojsonProps[] | null>({
-        queryKey: ['windsData', isWindsActive],
-        queryFn: getDepth,
-        enabled: isWindsActive,
-    });
+    const map = useMap()
 
+    const { data: years, isLoading } = useQuery<string[] | null>({
+        queryKey: ["datasetData", dataset],
+        queryFn: () => getYears(DATASETS[dataset!].api),
+        enabled: !!dataset,
+        staleTime: 1000 * 60 * 60
+    })
 
-    // Efecto para controlar la apertura/cierre y limpieza de datos según la capa activa
     useEffect(() => {
-        if (isWindsActive) {
-            setOpen(true);
-            setTabIndex(0);
-            setWavessData(null); // Limpiar datos de olas
+        if (dataset) {
+            setOpen(true)
+            setTabIndex(0)
         } else {
-            setWindsData(null);
-            setOpen(false);
+            setOpen(false)
         }
-    }, [isWindsActive]);
-
-    useEffect(() => {
-        if (isWavesActive) {
-            setOpen(true);
-            setTabIndex(0);
-            setWindsData(null); // Limpiar datos de viento
-        } else {
-            setWavessData(null);
-        }
-    }, [isWavesActive]);
-
-    useEffect(() => {
-        if (data) {
-            setWindsData(data);
-        }
-        setIsLoading(queryLoading);
-    }, [data, queryLoading]);
-
-    useEffect(() => {
-        if (waves) {
-            setWavessData(waves);
-        }
-        // loadingWaves se usa solo si olas está activo
-    }, [waves, loadingWaves]);
+    }, [dataset])
 
     const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-        setTabIndex(newValue);
-    };
+        setTabIndex(newValue)
+    }
 
     return (
-        <Box sx={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            width: "100%",
-            maxWidth: "100vw",
-            zIndex: 1300,
-        }}>
-            <Box sx={{
+        <Box
+            sx={{
+                position: "fixed",
+                bottom: 0,
+                left: 0,
                 width: "100%",
-                display: "flex",
-                justifyContent: "center",
-                position: "relative",
-            }}>
+                zIndex: 1300,
+            }}
+        >
+
+            <Box display="flex" justifyContent="center">
+
                 <IconButton
                     sx={{
-                        position: "relative",
-                        top: 0,
-                        bgcolor: "var(--color-primary)",
-                        color: "white",
-                        boxShadow: 1,
-                        mb: open ? 1 : 0,
-                        transition: "margin-bottom 0.3s",
-                        '&:hover': {
-                            bgcolor: "var(--color-primary)",
-                        }
+                        bgcolor: "white",
+                        color: "var(--color-primary)",
+                        boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+                        mb: open ? 1 : 0
                     }}
                     onClick={() => setOpen(!open)}
-                    size="small"
                 >
                     {open ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
                 </IconButton>
+
             </Box>
+
             <Collapse in={open} orientation="vertical">
-                {open && (
-                    <Box sx={{
+
+                <Box
+                    sx={{
                         bgcolor: "background.paper",
                         borderRadius: 2,
-                        boxShadow: 2,
-                        p: 1,
-                        width: "100%",
-                        maxWidth: "100vw"
-                    }}>
-                        <Tabs
-                            value={tabIndex}
-                            onChange={handleTabChange}
-                            variant="standard"
-                            sx={{
-                                borderBottom: 1,
-                                borderColor: 'divider',
-                                minHeight: 0,
-                                '& .MuiTab-root': {
-                                    minHeight: 0,
-                                    fontSize: 13,
-                                    py: 0.5,
-                                    px: 2,
-                                    borderTopLeftRadius: 8,
-                                    borderTopRightRadius: 8,
-                                    bgcolor: '#f5f5f5',
-                                    mx: 0.5,
-                                },
-                                '& .Mui-selected': {
-                                    bgcolor: 'white',
-                                    fontWeight: 'bold',
-                                    boxShadow: 1,
-                                }
-                            }}
-                        >
-                            <Tab label="Datos" sx={{ minHeight: 0, fontSize: 13, py: 0.5, px: 2 }} />
-                            <Tab label="Creditos" sx={{ minHeight: 0, fontSize: 13, py: 0.5, px: 2 }} />
-                        </Tabs>
-                        <Box sx={{ mt: 2 }}>
-                            {tabIndex === 0 && (
-                                <div className="h-[150px] overflow-auto bg-slate-200 text-black p-2 flex gap-1 flex-wrap">
-                                    {isWavesActive ? (
-                                        loadingWaves ? (
-                                            CircularIndeterminate()
-                                        ) : wavesData && wavesData.length > 0 ? (
-                                            wavesData.map((wave: GeojsonProps) => (
-                                                <ItemGeo key={wave.fileName} {...wave} map={map} markerShape="circle-red" />
-                                            ))
-                                        ) : (
-                                            <Box sx={{ width: "100%", textAlign: "center", color: "gray", mt: 4 }}>
-                                                Aún no hay elementos cargados.
-                                            </Box>
-                                        )
-                                    ) : isWindsActive ? (
-                                        isLoading ? (
-                                            CircularIndeterminate()
-                                        ) : windsData && windsData.length > 0 ? (
-                                            windsData.map((wind: GeojsonProps) => (
-                                                <ItemGeo key={wind.fileName} {...wind} map={map} markerShape="circle-blue" />
-                                            ))
-                                        ) : (
-                                            <Box sx={{ width: "100%", textAlign: "center", color: "gray", mt: 4 }}>
-                                                Aún no hay elementos cargados.
-                                            </Box>
-                                        )
-                                    ) : (
-                                        <Box sx={{ width: "100%", textAlign: "center", color: "gray", mt: 4 }}>
-                                            Selecciona una capa para ver los datos.
-                                        </Box>
-                                    )}
-                                </div>
-                            )}
-                            {tabIndex === 1 && (
-                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center", alignItems: "center", minHeight: 150 }}>
-                                    {empresasImg.map((img) => (
-                                        <Box key={img.alt} sx={{ width: 80, height: 80, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#f3f3f3", borderRadius: 2 }}>
-                                            <img src={img.src} alt={img.alt} style={{ maxWidth: "70px", maxHeight: "70px" }} />
-                                        </Box>
-                                    ))}
-                                </Box>
-                            )}
-                        </Box>
+                        boxShadow: 8,
+
+                    }}
+                >
+
+                    <Tabs value={tabIndex} onChange={handleTabChange}>
+
+                        <Tab label="Datos" />
+                        <Tab label="Creditos" />
+
+                    </Tabs>
+
+                    <Box>
+
+                        {tabIndex === 0 && (
+
+                            <div className="h-[150px] overflow-auto bg-slate-200 text-black p-2 flex gap-1 flex-wrap">
+
+                                {isLoading ? (
+
+                                    <CircularIndeterminate />
+
+                                ) : years && years.length > 0 ? (
+
+                                    years?.map((year) => (
+
+                                        <ItemGeo
+                                            key={`${dataset}-${year}`}
+                                            fileName={`${DATASETS[dataset!]?.api} ${year}`}
+                                            rangeDate={year}
+                                            //map={map}
+                                            dataset={dataset!}
+                                            markerShape={DATASETS[dataset!]?.marker}
+                                        />
+
+                                    ))
+
+                                ) : (
+
+                                    <Box textAlign="center" width="100%">
+                                        No hay datos disponibles
+                                    </Box>
+
+                                )}
+
+                            </div>
+
+                        )}
+
+                        {tabIndex === 1 && (
+
+                            <Box
+                                display="flex"
+                                justifyContent="center"
+                                flexWrap="wrap"
+                                gap={2}
+                                minHeight={150}
+                            >
+
+                                {empresasImg.map((img) => (
+
+                                    <Box
+                                        key={img.alt}
+                                        width={80}
+                                        height={80}
+                                        display="flex"
+                                        justifyContent="center"
+                                        alignItems="center"
+                                    >
+
+                                        <img
+                                            src={img.src}
+                                            alt={img.alt}
+                                            style={{ maxWidth: "70px" }}
+                                        />
+
+                                    </Box>
+
+                                ))}
+
+                            </Box>
+
+                        )}
+
                     </Box>
-                )}
+
+                </Box>
+
             </Collapse>
+
         </Box>
-    );
+    )
 }
 
 export default ListDataGeo

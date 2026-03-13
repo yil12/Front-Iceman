@@ -1,117 +1,205 @@
 import L, { Map as LeafletMap, GeoJSON } from "leaflet";
-import type { GeojsonProps } from "../interface/geojson.interface";
-import type { Feature, Point, Geometry } from "geojson";
+import type { Feature, Point, FeatureCollection, Geometry } from "geojson";
 
-// Diccionario global de capas por id
-const layersRegistry: Record<string, GeoJSON> = {};
+// Registro global de capas
+const layersRegistry = new Map<string, GeoJSON>();
 
-/**
- * Alterna un geojson en el mapa (agrega o quita según exista)
- * @param map instancia del mapa Leaflet
- * @param geojson objeto GeoJSON válido
- * @param id identificador único de la capa (ej. fileName)
- * @param style estilo opcional para el geojson
- * @returns la capa activa (o null si se quitó)
- */
+let selectedLayer: L.CircleMarker | null = null;
+let selectedMarker: L.Marker | null = null;
+
 export function toggleGeoJsonOnMap(
     map: LeafletMap,
-    geojson: GeojsonProps["geojson"],
+    geojson: FeatureCollection<Geometry>,
     id: string,
-    markerShape: 'circle-red' | 'circle-blue' = 'circle-red',
+    markerShape: "circle-red" | "circle-blue" = "circle-red",
     onFeatureClick: (feature: Feature) => void,
     style?: L.PathOptions
 ): GeoJSON | null {
-    if (layersRegistry[id]) {
-        map.removeLayer(layersRegistry[id]);
-        delete layersRegistry[id];
+
+    // 🔹 Si la capa ya existe la removemos
+    const existingLayer = layersRegistry.get(id);
+
+    if (existingLayer) {
+        map.removeLayer(existingLayer);
+        layersRegistry.delete(id);
         return null;
     }
 
-    // Agrupar features por ubicación
-    const featuresByLocation = findFeaturesAtSameLocation(geojson);
+    // 🔹 Crear pane si no existe
+    if (!map.getPane("geojsonPane")) {
+        map.createPane("geojsonPane");
+        map.getPane("geojsonPane")!.style.zIndex = "650";
+    }
 
-    // Crear capa GeoJSON
+    findFeaturesAtSameLocation(geojson);
+
     const geoJsonLayer = L.geoJSON(geojson, {
+        pane: "geojsonPane",
+
         style: style ?? {
             color: "blue",
             weight: 2,
             opacity: 0.6,
         },
+
         pointToLayer: (_feature, latlng) => {
-            if (markerShape === "circle-red") {
-                return L.circleMarker(latlng, {
-                    radius: 5,
-                    fillColor: "#c0c0c0",
-                    color: "#000",
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8,
-                });
-            }
-            if (markerShape === "circle-blue") {
-                return L.circleMarker(latlng, {
-                    radius: 5,
-                    fillColor: "#00f",
-                    color: "#000",
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8,
-                });
-            }
 
-            return L.marker(latlng); // fallback
+            const baseColor =
+                markerShape === "circle-blue"
+                    ? "#2563eb"
+                    : "#10b981";
+
+            return L.circleMarker(latlng, {
+                radius: 8,
+                fillColor: baseColor,
+                color: "#ffffff",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 1,
+            });
+
         },
+
         onEachFeature: (feature, layer) => {
-            if (feature.properties?.station || feature.properties.estacion || feature.properties.Estacion) {
-                layer.on({
-                    click: (e) => {
-                        L.DomEvent.stopPropagation(e);
-                        const geometry = feature.geometry as Point;
-                        if (geometry.type === 'Point') {
-                            const coords = geometry.coordinates;
-                            const key = `${coords[0]},${coords[1]}`;
-                            const features = featuresByLocation[key];
 
-                            // Si hay múltiples features en esta ubicación, pasarlos todos
-                            if (features && features.length > 1) {
-                                onFeatureClick(features[0], features);
-                            } else {
-                                onFeatureClick(feature);
-                            }
-                        }
-                    }
+            if (!(layer instanceof L.CircleMarker)) return;
+
+            // 🔹 TOOLTIP nombre estación
+            const stationName =
+                feature.properties?.Estacion ||
+                feature.properties?.station ||
+                feature.properties?.name ||
+                "Estación";
+
+            layer.bindTooltip(stationName, {
+                direction: "top",
+                offset: [0, -10],
+                opacity: 0.9,
+            });
+
+            // Hover
+            layer.on("mouseover", () => {
+                if (layer !== selectedLayer) {
+                    layer.setStyle({ radius: 10 });
+                }
+            });
+
+            layer.on("mouseout", () => {
+                if (layer !== selectedLayer) {
+                    layer.setStyle({ radius: 8 });
+                }
+            });
+
+            // Click selección
+            layer.on("click", (e) => {
+
+                L.DomEvent.stopPropagation(e);
+
+                // Restaurar anterior
+                if (selectedLayer) {
+                    selectedLayer.setStyle({
+                        radius: 8,
+                        opacity: 1,
+                        fillOpacity: 1,
+                    });
+                }
+
+                if (selectedMarker) {
+                    map.removeLayer(selectedMarker);
+                }
+
+                selectedLayer = layer;
+
+                const latlng = layer.getLatLng();
+
+                // ocultar círculo
+                layer.setStyle({
+                    opacity: 0,
+                    fillOpacity: 0,
                 });
-            }
+
+                // agregar pin
+                selectedMarker = L.marker(latlng, {
+                    icon: placeIcon,
+                    interactive: false,
+                    pane: "geojsonPane"
+                }).addTo(map);
+
+                onFeatureClick(feature);
+
+            });
+
         },
+
     });
 
-    // Agregar al mapa y guardar en el registro
     geoJsonLayer.addTo(map);
-    layersRegistry[id] = geoJsonLayer;
-
-    // Ajustar zoom
-    map.fitBounds(geoJsonLayer.getBounds());
+    layersRegistry.set(id, geoJsonLayer);
 
     return geoJsonLayer;
 }
 
-// Función para agrupar features por ubicación
-function findFeaturesAtSameLocation(geojson: GeojsonProps["geojson"]) {
+function findFeaturesAtSameLocation(
+    geojson: FeatureCollection<Geometry>
+) {
+
     const featuresByLocation: Record<string, Feature[]> = {};
 
     geojson.features.forEach((feature) => {
+
         const geometry = feature.geometry as Point;
-        if (geometry.type === 'Point') {
+
+        if (geometry.type === "Point") {
+
             const coords = geometry.coordinates;
             const key = `${coords[0]},${coords[1]}`;
 
             if (!featuresByLocation[key]) {
                 featuresByLocation[key] = [];
             }
+
             featuresByLocation[key].push(feature);
+
         }
+
     });
 
     return featuresByLocation;
 }
 
+export function clearSelectedMarker(map: L.Map) {
+
+    if (selectedLayer) {
+        selectedLayer.setStyle({
+            radius: 8,
+            opacity: 1,
+            fillOpacity: 1,
+        });
+        selectedLayer = null;
+    }
+
+    if (selectedMarker) {
+        map.removeLayer(selectedMarker);
+        selectedMarker = null;
+    }
+
+}
+
+const placeIcon = L.divIcon({
+    className: "mui-place-icon",
+    html: `
+    <svg xmlns="http://www.w3.org/2000/svg"
+         height="32"
+         viewBox="0 0 24 24"
+         width="32"
+         fill="#0e0d0d">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 
+      7-13c0-3.87-3.13-7-7-7zm0 
+      9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 
+      6.5 12 6.5s2.5 1.12 2.5 
+      2.5S13.38 11.5 12 11.5z"/>
+    </svg>
+  `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+});

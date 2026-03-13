@@ -1,15 +1,19 @@
-import type { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
-import type { Map } from 'leaflet';
+import type { FeatureCollection } from "geojson";
+import type { DatasetKey } from "../data/dataset";
+
+//import type { Map } from "leaflet";
+
+export type MarkerShape = 'circle-red' | 'circle-blue';
+
 export interface GeojsonProps {
-    rangeDate: string
-    fileName: string
-    geojson: FeatureCollection<Geometry, GeoJsonProperties>
-    map?: Map
-    markerShape?: 'circle-red' | 'circle-blue'
+  fileName: string;
+  geojson: FeatureCollection;
+  rangeDate: string;
+  markerShape: MarkerShape;
 }
 
+
 export interface ListGeojsonProps {
-    isWavesActive: boolean
-    isWindsActive: boolean
-    map: Map
+  dataset: DatasetKey | null;
+  //map: Map | null;
 }

@@ -1,11 +1,11 @@
 import type { GeojsonProps } from "../interface/geojson.interface";
 
 
-const URL_DEPTH_API: string = 'https://api-dimar.onrender.com/meteorologico/';
+const URL_DEPTH_API: string = 'https://api-dimar.onrender.com/';
 
 export async function getYears(): Promise<string[] | null> {
     try {
-        const res = await fetch(`${URL_DEPTH_API}years`,
+        const res = await fetch(`${URL_DEPTH_API}ICEMAN-OCEAN/anios`,
             {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
@@ -15,7 +15,7 @@ export async function getYears(): Promise<string[] | null> {
             return null;
         }
         const data = (await res.json());
-        return data.years as string[];
+        return data.anios as string[];
     } catch (err) {
         console.error('getYears error:', err);
         return null;
@@ -30,7 +30,7 @@ export async function getDepth(): Promise<GeojsonProps[] | null> {
         }
         const listDepth: GeojsonProps[] = await Promise.all(
             years.map(async (year: string) => {
-                const res = await fetch(`${URL_DEPTH_API}estaciones/por-anio/${year}`,
+                const res = await fetch(`${URL_DEPTH_API}ICEMAN-OCEAN/anio/${year}/estaciones`,
                     {
                         method: 'GET',
                         headers: { 'Accept': 'application/json' }
@@ -41,8 +41,8 @@ export async function getDepth(): Promise<GeojsonProps[] | null> {
                 }
                 const geojson = await res.json();
                 return {
-                    rangeDate: geojson.year,
-                    fileName: `Iceman-Ocean ${geojson.year}`,
+                    rangeDate: geojson.anio,
+                    fileName: `Iceman-Ocean ${geojson.anio}`,
                     geojson: { type: "FeatureCollection", features: geojson.features }
                 } as GeojsonProps;
             })

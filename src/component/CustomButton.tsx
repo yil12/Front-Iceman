@@ -1,27 +1,25 @@
-import { IconButton, CircularProgress } from '@mui/material';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import type { Feature, Geometry } from 'geojson';
-import downloadExcelByYear from '../request/get-depth-to-excel';
-import { useQuery } from '@tanstack/react-query';
+import { IconButton } from "@mui/material";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import downloadExcel from "../request/get-depth-to-excel";
+import type { DatasetKey } from "../data/dataset";
 
 interface ButtonProps {
-    features: Feature<Geometry, any>[],
-    fileName: string
+    dataset: DatasetKey;
+    year: string;  
 }
 
-export default function CustomButton({ features }: Readonly<ButtonProps>) {
-    const dateData: string | undefined = features[0]?.properties?.fecha;
-    const year: string | undefined = dateData ? dateData.split('-')[0] : undefined;
+export default function CustomButton({
+    dataset,
+    year,
+}: Readonly<ButtonProps>) {
 
-    const { isFetching, refetch } = useQuery({
-        queryKey: ['downloadExcel', year],
-        queryFn: async () => {
-            if (year) {
-                await downloadExcelByYear(year);
-            }
-        },
-        enabled: false, // Solo ejecuta cuando se presiona el botón
-    });
+    const handleDownload = (e: React.MouseEvent) => {
+        e.stopPropagation();  // ✅ Evita que el clic llegue al Card
+        
+        if (year) {
+            downloadExcel(dataset, year);
+        }
+    };
 
     return (
         <IconButton
@@ -35,10 +33,8 @@ export default function CustomButton({ features }: Readonly<ButtonProps>) {
                     backgroundColor: '#7d8bf3',
                 }
             }}
-            onClick={() => refetch()}
-            disabled={isFetching || !year}
-        >
-            {isFetching ? <CircularProgress size={24} /> : <FileDownloadIcon />}
+            onClick={handleDownload} disabled={!year}>
+            <FileDownloadIcon />
         </IconButton>
     );
 }

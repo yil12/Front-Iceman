@@ -5,7 +5,7 @@ const URL_METEO_API: string = 'https://api-dimar.onrender.com/';
 
 export async function getYears(): Promise<string[] | null> {
     try {
-        const res = await fetch(`${URL_METEO_API}anios`,
+        const res = await fetch(`${URL_METEO_API}ICEMAN-METEO/anios`,
             {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
@@ -30,7 +30,7 @@ export async function getMeteo(): Promise<GeojsonProps[] | null> {
         }
         const listMeteo: GeojsonProps[] = await Promise.all(
             years.map(async (year: string) => {
-                const res = await fetch(`${URL_METEO_API}anio/${year}/estaciones`,
+                const res = await fetch(`${URL_METEO_API}ICEMAN-METEO/anio/${year}/estaciones`,
                     {
                         method: 'GET',
                         headers: { 'Accept': 'application/json' }
