@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "Node",
+    
+    // ✅ CAMBIAR: De "Node" a "bundler" para consistencia
+    "moduleResolution": "bundler",
+    
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "strict": true,

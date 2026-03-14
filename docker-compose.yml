@@ -3,7 +3,7 @@ version: "3.8"
 services:
   react-app:
     build: .
-    container_name: alphapro_test
+    container_name: iceman
     ports:
       - "80:80"
     restart: unless-stopped

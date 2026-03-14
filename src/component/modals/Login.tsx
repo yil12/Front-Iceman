@@ -1,3 +1,5 @@
+// src/component/modals/Login.tsx - CORREGIDO
+
 import { useForm } from "react-hook-form";
 import {
     TextField,
@@ -19,14 +21,21 @@ type FormData = {
 
 export default function Login({ open, onClose }: Readonly<LoginProps>) {
     const { register, handleSubmit, reset } = useForm<FormData>();
-    const { setValue } = useLocalStorageContext();
+    
+    // ✅ NO usar setValue del contexto aquí (es para GeojsonMap, no para login)
+    // const { setValue } = useLocalStorageContext();  ← Eliminar o no usar
 
     const onSubmit = (data: FormData) => {
         console.log("Nombre de usuario:", data.user);
         console.log("contraseña:", data.password);
-        setValue(data.user)
-        reset()
-        onClose(false)
+        
+        // ✅ Guardar datos de usuario en localStorage directamente
+        localStorage.setItem('user_name', data.user);
+        // Opcional: guardar más datos si los necesitas
+        // localStorage.setItem('user_logged', 'true');
+        
+        reset();
+        onClose(false);
     };
 
     const style = {
@@ -46,26 +55,23 @@ export default function Login({ open, onClose }: Readonly<LoginProps>) {
     };
 
     return (
-        <Modal open={open} onClose={onClose} >
+        <Modal open={open} onClose={onClose}>
             <Box
                 component="form"
                 onSubmit={handleSubmit(onSubmit)}
                 sx={style}
             >
-                {/* Campo: Nombre de usuario */}
                 <TextField
                     label="Usuario"
                     {...register("user", { required: true })}
                     fullWidth
                 />
-                {/* Campo: contraseña */}
                 <TextField
                     type="password"
                     label="Contraseña"
                     {...register("password", { required: true })}
                     fullWidth
                 />
-                {/* Botón enviar */}
                 <Button variant="contained" type="submit">
                     Enviar datos
                 </Button>
