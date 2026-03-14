@@ -24,13 +24,21 @@ const ListDataGeo = ({ dataset }: ListGeojsonProps) => {
 
     const map = useMap()
 
-    const { data: years, isLoading } = useQuery<string[] | null>({
+    const { data: years, isLoading } = useQuery<string[]>({
         queryKey: ["datasetData", dataset],
-        queryFn: () => getYears(DATASETS[dataset!].api),
-        enabled: !!dataset,
-        staleTime: 1000 * 60 * 60
-    })
+        queryFn: async () => {
+            const data = await getYears(DATASETS[dataset!].api)
 
+            if (!data) throw new Error("Empty response")
+
+            return data
+        },
+        enabled: !!dataset,
+        staleTime: 1000 * 60 * 10,
+        retry: 2,
+        refetchOnWindowFocus: false
+    })
+    
     useEffect(() => {
         if (dataset) {
             setOpen(true)

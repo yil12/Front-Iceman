@@ -79,9 +79,9 @@ export default function BuoyIcon(props: SvgIconProps) {
 
 // Filas (parámetros/mediciones)
 export const matrixRows: MatrixRow[] = [
-  { id: 'temp', icon: <Thermostat fontSize="small" />, label: 'Temperatura' },
   { id: 'waves', icon: <Waves fontSize="small" />, label: 'Oleaje' },
   { id: 'wind', icon: <Air fontSize="small" />, label: 'Viento' },
+  { id: 'temp', icon: <Thermostat fontSize="small" />, label: 'Temperatura' },
   { id: 'salinity', icon: <WaterDrop fontSize="small" />, label: 'Salinidad' },
   { id: 'currents', icon: <Speed fontSize="small" />, label: 'Corrientes' },
   { id: 'co2', icon: <Grain fontSize="small" />, label: 'CO2' },
