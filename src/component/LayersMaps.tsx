@@ -31,9 +31,9 @@ export const BaseMapSelector = ({
             }}
             sx={{
                 position: "absolute",
-                top: 70,
-                right: openMap ? 20 : "-260px",
-                width: 230,
+                top: 5,
+                right: openMap ? 10 : "-260px",
+                width: 180,
                 zIndex: 1300,
                 transition: "right .3s ease",
 
@@ -42,7 +42,7 @@ export const BaseMapSelector = ({
 
                 borderRadius: 3,
                 boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
-                padding: 2,
+                padding: 1,
             }}
         >
             {/* Header */}

@@ -269,18 +269,17 @@ const SidebarWithMap = ({
         flexWrap="wrap"
         justifyContent="center"
         position="absolute"
-        top={20}
-        left="50%"
+        top={3}
+        left="42.4%"
         sx={{
           transform: "translateX(-50%)",
-          maxWidth: "80%",
-          gap: 1,
+          maxWidth: "100%",
+          gap: 0.5,  // ✅ Reducir gap (antes: 1)
           zIndex: 1250,
           pointerEvents: "auto"
         }}
       >
         {map && geoChipArray?.map((fileName) => {
-
           const markerShape =
             value?.[fileName]?.markerShape === 'circle-blue'
               ? 'circle-blue'
@@ -293,9 +292,9 @@ const SidebarWithMap = ({
               geojson={value?.[fileName]?.geojson}
               markerShape={markerShape}
               onFeatureClick={handleFeatureClick}
+              size="small"  // ✅ Pasar prop de tamaño
             />
           );
-
         })}
       </Box>
 
