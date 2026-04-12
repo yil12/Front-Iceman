@@ -1,7 +1,6 @@
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
-// CircularIndeterminate.tsx - Modificado
 interface CircularIndeterminateProps {
   size?: number;
   showText?: boolean;
@@ -53,7 +52,7 @@ export default function CircularIndeterminate({
         }}
       />
 
-      {showText && !compact && (  // ✅ Solo mostrar texto si no es compact
+      {showText && !compact && (
         <Typography
           sx={{
             fontSize: fontSize,
